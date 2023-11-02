@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        table {
+            border: 1px black solid;
+            width: 50%;
+        }
+        tr, th, td {
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            font-size: 24px;
+            font-weight: bold;
+            background-color: #D6EEEE;
+        }
+    </style>
+
+    <head> 
+        <title>Project</title> 
+    </head>
+
+    <body> 
+        <h1>Robot Car</h1>
+        <table>
+            <tr>
+                <th>SSI</th>
+            </tr>
+            <tr>
+                <td>
+                    <p>Voltage: <!--#volt--></p>
+                    <p>Temp: <!--#temp--> C</p>
+                    <p>LED is: <!--#led--></p>
+                </td>
+            </tr>
+        </table>
+        <br>
+        <table>
+            <tr>
+                <th>CGI</th>
+            </tr>
+            <tr>
+                <td><p>
+                        <a href="/led.cgi?led=1"><button>LED ON</button></a>
+                        <a href="/led.cgi?led=0"><button>LED OFF</button></a>
+                </p></td>
+            </tr>
+        </table>
+        <br>
+        <a href="/index.shtml">Refresh</a>
+   </body>
+</html>
