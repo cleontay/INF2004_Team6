@@ -1,4 +1,4 @@
-add_executable(Barcode barcode.c)
+add_executable(Barcode main.c barcode.c)
 
 # pull in common dependencies
 target_link_libraries(Barcode pico_stdlib)

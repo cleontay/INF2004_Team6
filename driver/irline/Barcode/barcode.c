@@ -1,27 +1,9 @@
-#include <stdio.h>
-#include "pico/stdlib.h"
+#include "barcode.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 
-#define N_SAMPLES 1000
-uint16_t sample_buf[N_SAMPLES];
-#define IR_SENSOR_PIN 26
-
-// Declaring barcode variables
-typedef struct {
-    int high_duration;
-    int low_duration;
-    int barcode_started;
-    char pattern_buffer[30];
-    int pattern_index;
-    int line_threshold;
-} BarcodeDetector;
-
 // Check for high pins
 bool isHigh = false;
-
-// Global barcode detector
-BarcodeDetector barcodeDetector;
 
 // Initialise the variables
 void initBarcodeDetector(BarcodeDetector *detector) {
@@ -45,7 +27,7 @@ void endBarcode(BarcodeDetector *detector) {
     detector->pattern_buffer[detector->pattern_index] = '\0';
     detector->barcode_started = 0;
     detector->low_duration = 0;
-    printf("%s\n", barcodeDetector.pattern_buffer);
+    printf("%s\n", detector->pattern_buffer);
     memset(detector->pattern_buffer, 0, sizeof(detector->pattern_buffer));
     detector->pattern_index = 0;
 }
@@ -100,15 +82,15 @@ void addToLowBarcode(BarcodeDetector *detector) {
 // Manage high state
 void isHighState(BarcodeDetector *detector) {
     uint16_t sensor_data = adc_read();
-    if (barcodeDetector.barcode_started == 0 && sensor_data>=barcodeDetector.line_threshold) {
-        startBarcode(&barcodeDetector);
+    if (detector->barcode_started == 0 && sensor_data>=detector->line_threshold) {
+        startBarcode(detector);
     }
-    else if (sensor_data>=barcodeDetector.line_threshold){
-        if (barcodeDetector.low_duration > 0) {
-            finishLowBarcode(&barcodeDetector);
+    else if (sensor_data>=detector->line_threshold){
+        if (detector->low_duration > 0) {
+            finishLowBarcode(detector);
         }
         else {
-            addToHighBarcode(&barcodeDetector);
+            addToHighBarcode(detector);
         }
     }
 }
@@ -116,17 +98,17 @@ void isHighState(BarcodeDetector *detector) {
 // Manage low state
 void isLowState(BarcodeDetector *detector) {
     uint16_t sensor_data = adc_read();
-    if(sensor_data < barcodeDetector.line_threshold) {
-        if (barcodeDetector.barcode_started == 1) {
-        if (barcodeDetector.high_duration > 0) {
-            finishHighBarcode(&barcodeDetector);
+    if(sensor_data < detector->line_threshold) {
+        if (detector->barcode_started == 1) {
+        if (detector->high_duration > 0) {
+            finishHighBarcode(detector);
         }
         else {
-            if (barcodeDetector.low_duration > 4) {
-                endBarcode(&barcodeDetector);
+            if (detector->low_duration > 4) {
+                endBarcode(detector);
             }
             else {
-                addToLowBarcode(&barcodeDetector);
+                addToLowBarcode(detector);
             }
         }
     }
@@ -146,26 +128,3 @@ void IR_sensor_handler(uint gpio, uint32_t events) {
 }
 
 
-int main(void) {
-    stdio_init_all();
-    adc_init();
-    adc_set_temp_sensor_enabled(true);
-    initBarcodeDetector(&barcodeDetector);
-
-    // Initialize the GPIO pin for the IR sensor as an input
-    gpio_init(IR_SENSOR_PIN);
-    gpio_set_dir(IR_SENSOR_PIN, GPIO_IN);
-    gpio_set_irq_enabled_with_callback(IR_SENSOR_PIN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &IR_sensor_handler);
-
-    while(1) {
-        // Manage states
-        if (isHigh == true) {
-            isHighState(&barcodeDetector);
-        }
-        else {
-            isLowState(&barcodeDetector);
-        }
-        
-        sleep_ms(200);
-    }
-}
