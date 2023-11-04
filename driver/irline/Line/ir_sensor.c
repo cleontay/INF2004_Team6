@@ -1,51 +1,50 @@
+// ir_sensor.c
 #include <stdio.h>
 #include "ir_sensor.h"
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
-void ir_sensor_init(unsigned int sensor_pin) {
-    gpio_init(sensor_pin);
-    gpio_set_dir(sensor_pin, GPIO_IN);
+// Callback function for IR sensor interrupt
+static void ir_sensor_callback(uint gpio, uint32_t events) {
+    IR_Sensor* sensor = (IR_Sensor*)gpio_get_irq_user_data(gpio);
+    sensor->detected = true;
 }
 
-bool ir_sensor_is_line_detected(unsigned int sensor_pin) {
-    return gpio_get(sensor_pin);
+void ir_sensor_init(IR_Sensor* sensor, unsigned int pin) {
+    sensor->pin = pin;
+    sensor->detected = false;
+    
+    gpio_init(sensor->pin);
+    gpio_set_dir(sensor->pin, GPIO_IN);
+    
+    // Configure an interrupt for the IR sensor
+    gpio_set_irq_enabled_with_callback(sensor->pin, GPIO_IRQ_EDGE_RISE, true, ir_sensor_callback);
+    gpio_set_irq_enabled(sensor->pin, true);
+    gpio_set_irq_handler(sensor->pin, ir_sensor_callback);
+    gpio_set_irq_user_data(sensor->pin, sensor);
 }
 
-/* 
-Example Usage:
-#include <stdio.h>
-#include "pico/stdlib.h"
-#include "ir_sensor.h"
+bool ir_sensor_detected(const IR_Sensor* sensor) {
+    return sensor->detected;
+}
 
-#define IR_SENSOR1_PIN 26
-#define IR_SENSOR2_PIN 27
+// Callback function to handle IR sensor detection
+void ir_sensor_interrupt_handler(IR_Sensor* left_sensor, IR_Sensor* right_sensor) {
+    bool left_detected = ir_sensor_detected(left_sensor);
+    bool right_detected = ir_sensor_detected(right_sensor);
 
-int main() {
-    stdio_init_all();
-
-    ir_sensor_init(IR_SENSOR1_PIN);
-    ir_sensor_init(IR_SENSOR2_PIN);
-
-    while (1) {
-        bool lineDetected1 = ir_sensor_is_line_detected(IR_SENSOR1_PIN);
-        bool lineDetected2 = ir_sensor_is_line_detected(IR_SENSOR2_PIN);
-
-        if (lineDetected1) {
-            printf("Line detected by IR Sensor 1\n");
-        }
-
-        if (lineDetected2) {
-            printf("Line detected by IR Sensor 2\n");
-        }
-
-        // Implement your logic here to control the car based on which sensor detected the line
-        // You can use if-else or a state machine for more complex behavior
-
-        sleep_ms(100);
+    if (left_detected && !right_detected) {
+        // If the left sensor detects a line and the right sensor doesn't, turn right
+        // Implement code to turn right
+        printf("Turn right\n");
+    } else if (!left_detected && right_detected) {
+        // If the right sensor detects a line and the left sensor doesn't, turn left
+        // Implement code to turn left
+        printf("Turn left\n");
+    } else if (!left_detected && !right_detected) {
+        // If both sensors do not detect anything, stop
+        // Implement code to stop
+        printf("Stop\n");
     }
-
-    return 0;
 }
 
- */
