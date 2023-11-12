@@ -27,9 +27,54 @@ void endBarcode(BarcodeDetector *detector) {
     detector->pattern_buffer[detector->pattern_index] = '\0';
     detector->barcode_started = 0;
     detector->low_duration = 0;
+    decodeBarcode(detector);
     printf("%s\n", detector->pattern_buffer);
     memset(detector->pattern_buffer, 0, sizeof(detector->pattern_buffer));
     detector->pattern_index = 0;
+}
+
+void decodeBarcode(BarcodeDetector *detector) {
+    int group_size = 9;
+    char test[] = "tStsTsTstStSTsTststStStsTsTst";
+    char ast[] = "tStsTsTst", z[] = "tSTsTstst", a[] = "TststStsT", f[] = "tsTsTStst";
+    char new_pattern_buffer[3];
+    int new_pattern_length = 0;
+
+    for (int i = 0; i < strlen(test); i += group_size+1) {
+
+        char current_group[10]; // 9 characters + null terminator
+        strncpy(current_group, test + i, group_size);
+        current_group[group_size] = '\0'; // Null-terminate the substring
+
+        printf("%s\n", current_group);
+
+        // Check if the current group matches patterns
+        if (strcmp(current_group, ast) == 0) {
+            new_pattern_buffer[new_pattern_length] = '*';
+            new_pattern_length++;
+        }
+        else if (strcmp(current_group, z) == 0) {
+            new_pattern_buffer[new_pattern_length] = 'Z';
+            new_pattern_length++;
+        }
+        else if (strcmp(current_group, a) == 0) {
+            new_pattern_buffer[new_pattern_length] = 'A';
+            new_pattern_length++;
+        }
+        memset(current_group, 0, sizeof(current_group));
+    }
+    if (new_pattern_buffer[0] == '*' && new_pattern_buffer[2] == '*') {
+        if (new_pattern_length>0) {
+        new_pattern_buffer[3] = '\0';
+        printf("Barcode detected and decoded into: %s\n", new_pattern_buffer);
+        }
+    }
+    else {
+        printf("Misshapen barcode");
+    }
+
+    
+    
 }
 
 void finishLowBarcode(BarcodeDetector *detector) {
@@ -126,5 +171,6 @@ void IR_sensor_handler(uint gpio, uint32_t events) {
         isHigh = false;
     }
 }
+
 
 
