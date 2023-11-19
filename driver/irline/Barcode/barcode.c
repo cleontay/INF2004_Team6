@@ -12,7 +12,7 @@ void initBarcodeDetector(BarcodeDetector *detector) {
     detector->low_duration = 0;
     detector->barcode_started = 0;
     detector->pattern_index = 0;
-    detector->line_threshold = 1000;
+    detector->line_threshold = 2000;
 }
 
 // Declare start of barcode
