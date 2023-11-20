@@ -40,7 +40,7 @@ void endBarcode(BarcodeDetector *detector) {
 void decodeBarcode(BarcodeDetector *detector) {
     int group_size = 9;
     //char test[] = "tStsTsTstStSTsTststStStsTsTst";
-    char ast[] = "tStsTsTst", z[] = "tSTsTstst", a[] = "TststStsT", f[] = "tsTsTStst";
+    char ast[] = "tStsTsTst", astb[] = "tsTsTstSt", zb[] = "tstsTsTSt", ab[] = "TstStstsT", fb[] = "tstSTsTst", z[] = "tSTsTstst", a[] = "TststStsT", f[] = "tsTsTStst";
     char new_pattern_buffer[3];
     char display_char[1];
     int new_pattern_length = 0;
@@ -52,19 +52,19 @@ void decodeBarcode(BarcodeDetector *detector) {
         current_group[group_size] = '\0'; // Null-terminate the substring
 
         // Check if the current group matches patterns
-        if (strcmp(current_group, ast) == 0) {
+        if (strcmp(current_group, ast) == 0 || strcmp(current_group, astb) == 0) {
             new_pattern_buffer[new_pattern_length] = '*';
             new_pattern_length++;
         }
-        else if (strcmp(current_group, z) == 0) {
+        else if (strcmp(current_group, z) == 0 || strcmp(current_group, zb) == 0) {
             new_pattern_buffer[new_pattern_length] = 'Z';
             new_pattern_length++;
         }
-        else if (strcmp(current_group, a) == 0) {
+        else if (strcmp(current_group, a) == 0 || strcmp(current_group, ab) == 0) {
             new_pattern_buffer[new_pattern_length] = 'A';
             new_pattern_length++;
         }
-        else if (strcmp(current_group, f) == 0) {
+        else if (strcmp(current_group, f) == 0 || strcmp(current_group, fb) == 0) {
             new_pattern_buffer[new_pattern_length] = 'F';
             new_pattern_length++;
         }
@@ -180,6 +180,7 @@ void IR_sensor_handler(uint gpio, uint32_t events) {
         isHigh = false;
     }
 }
+
 
 
 
