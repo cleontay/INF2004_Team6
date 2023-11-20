@@ -2,7 +2,6 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 
-// Check for high pins
 bool isHigh = false;
 
 // Initialise the variables
@@ -27,7 +26,12 @@ void endBarcode(BarcodeDetector *detector) {
     detector->pattern_buffer[detector->pattern_index] = '\0';
     detector->barcode_started = 0;
     detector->low_duration = 0;
-    decodeBarcode(detector);
+    if(strlen(detector->pattern_buffer) == 29) {
+        decodeBarcode(detector);
+    }
+    else if(strlen(detector->pattern_buffer)>1) {
+        printf("Misshapen barcode\n");
+    }
     printf("%s\n", detector->pattern_buffer);
     memset(detector->pattern_buffer, 0, sizeof(detector->pattern_buffer));
     detector->pattern_index = 0;
@@ -35,18 +39,16 @@ void endBarcode(BarcodeDetector *detector) {
 
 void decodeBarcode(BarcodeDetector *detector) {
     int group_size = 9;
-    char test[] = "tStsTsTstStSTsTststStStsTsTst";
+    //char test[] = "tStsTsTstStSTsTststStStsTsTst";
     char ast[] = "tStsTsTst", z[] = "tSTsTstst", a[] = "TststStsT", f[] = "tsTsTStst";
     char new_pattern_buffer[3];
     int new_pattern_length = 0;
 
-    for (int i = 0; i < strlen(test); i += group_size+1) {
+    for (int i = 0; i < strlen(detector->pattern_buffer); i += group_size+1) {
 
         char current_group[10]; // 9 characters + null terminator
-        strncpy(current_group, test + i, group_size);
+        strncpy(current_group, detector->pattern_buffer + i, group_size);
         current_group[group_size] = '\0'; // Null-terminate the substring
-
-        printf("%s\n", current_group);
 
         // Check if the current group matches patterns
         if (strcmp(current_group, ast) == 0) {
@@ -59,6 +61,10 @@ void decodeBarcode(BarcodeDetector *detector) {
         }
         else if (strcmp(current_group, a) == 0) {
             new_pattern_buffer[new_pattern_length] = 'A';
+            new_pattern_length++;
+        }
+        else if (strcmp(current_group, f) == 0) {
+            new_pattern_buffer[new_pattern_length] = 'F';
             new_pattern_length++;
         }
         memset(current_group, 0, sizeof(current_group));
@@ -79,7 +85,7 @@ void decodeBarcode(BarcodeDetector *detector) {
 
 void finishLowBarcode(BarcodeDetector *detector) {
     // If end sequence detected, end scan
-    if (detector->low_duration > 4 && detector->pattern_index > 4) {
+    if (detector->low_duration > 6 && detector->pattern_index > 4) {
         endBarcode(detector);
     }
     // If barcode is low for long enough, it's a big space
@@ -149,7 +155,7 @@ void isLowState(BarcodeDetector *detector) {
             finishHighBarcode(detector);
         }
         else {
-            if (detector->low_duration > 4) {
+            if (detector->low_duration > 6) {
                 endBarcode(detector);
             }
             else {
@@ -163,7 +169,6 @@ void isLowState(BarcodeDetector *detector) {
 
 // Handle and set states
 void IR_sensor_handler(uint gpio, uint32_t events) {
-
     if (events & GPIO_IRQ_EDGE_RISE) {
         isHigh = true;
     }
