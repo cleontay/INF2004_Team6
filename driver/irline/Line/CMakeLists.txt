@@ -1,6 +1,5 @@
-add_executable(irsensor
-    irsensor.c
-)
+add_executable(irsensor main.c irsensor.c)
+
 
 pico_enable_stdio_usb(irsensor 1)
 pico_enable_stdio_uart(irsensor 0)
