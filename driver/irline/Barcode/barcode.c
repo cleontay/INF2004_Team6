@@ -30,7 +30,7 @@ void endBarcode(BarcodeDetector *detector) {
         decodeBarcode(detector);
     }
     else if(strlen(detector->pattern_buffer)>1) {
-        printf("Misshapen barcode\n");
+        printf("Misshapen barcode: Length\n");
     }
     printf("%s\n", detector->pattern_buffer);
     memset(detector->pattern_buffer, 0, sizeof(detector->pattern_buffer));
@@ -42,6 +42,7 @@ void decodeBarcode(BarcodeDetector *detector) {
     //char test[] = "tStsTsTstStSTsTststStStsTsTst";
     char ast[] = "tStsTsTst", z[] = "tSTsTstst", a[] = "TststStsT", f[] = "tsTsTStst";
     char new_pattern_buffer[3];
+    char display_char[1];
     int new_pattern_length = 0;
 
     for (int i = 0; i < strlen(detector->pattern_buffer); i += group_size+1) {
@@ -71,12 +72,13 @@ void decodeBarcode(BarcodeDetector *detector) {
     }
     if (new_pattern_buffer[0] == '*' && new_pattern_buffer[2] == '*') {
         if (new_pattern_length>0) {
-        new_pattern_buffer[3] = '\0';
-        printf("Barcode detected and decoded into: %s\n", new_pattern_buffer);
+        strncpy(display_char, new_pattern_buffer + 1, 1);
+        display_char[1] = '\0';
+        printf("Barcode detected and decoded into: %s\n", display_char);
         }
     }
     else {
-        printf("Misshapen barcode");
+        printf("Misshapen barcode: Pattern\n");
     }
 
     
@@ -85,7 +87,7 @@ void decodeBarcode(BarcodeDetector *detector) {
 
 void finishLowBarcode(BarcodeDetector *detector) {
     // If end sequence detected, end scan
-    if (detector->low_duration > 6 && detector->pattern_index > 4) {
+    if (detector->low_duration > 10 && detector->pattern_index > 4) {
         endBarcode(detector);
     }
     // If barcode is low for long enough, it's a big space
@@ -133,6 +135,7 @@ void addToLowBarcode(BarcodeDetector *detector) {
 // Manage high state
 void isHighState(BarcodeDetector *detector) {
     uint16_t sensor_data = adc_read();
+    printf("%d\n", sensor_data);
     if (detector->barcode_started == 0 && sensor_data>=detector->line_threshold) {
         startBarcode(detector);
     }
@@ -149,13 +152,14 @@ void isHighState(BarcodeDetector *detector) {
 // Manage low state
 void isLowState(BarcodeDetector *detector) {
     uint16_t sensor_data = adc_read();
+    printf("%d\n", sensor_data);
     if(sensor_data < detector->line_threshold) {
         if (detector->barcode_started == 1) {
         if (detector->high_duration > 0) {
             finishHighBarcode(detector);
         }
         else {
-            if (detector->low_duration > 6) {
+            if (detector->low_duration > 10) {
                 endBarcode(detector);
             }
             else {
