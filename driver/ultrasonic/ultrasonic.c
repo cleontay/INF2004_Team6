@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <stdio.h>
 #include "ultrasonic.h"
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
@@ -10,6 +10,9 @@
 #define MAX_WAIT_TIME_US 10000
 #define OBJECT_DETECTION_THRESHOLD 6.0
 #define NUM_AVERAGES 8
+
+volatile bool object_detected = false;
+volatile float latest_distance_cm = 0.0;
 
 void echo_interrupt_handler() {
     if (gpio_get(ECHO_PIN) && latest_distance_cm <= OBJECT_DETECTION_THRESHOLD) {
