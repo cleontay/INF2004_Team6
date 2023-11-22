@@ -14,7 +14,7 @@ void initBarcodeDetector(BarcodeDetector *detector) {
     detector->line_threshold = 2000;
 }
 
-// Declare start of barcode
+// Declare start of barcode and increment
 void startBarcode(BarcodeDetector *detector) {
     detector->high_duration++;
     detector->barcode_started = 1;
@@ -26,66 +26,84 @@ void endBarcode(BarcodeDetector *detector) {
     detector->pattern_buffer[detector->pattern_index] = '\0';
     detector->barcode_started = 0;
     detector->low_duration = 0;
+
+    // Check for incomplete barcode
     if(strlen(detector->pattern_buffer) == 29) {
         decodeBarcode(detector);
     }
     else if(strlen(detector->pattern_buffer)>1) {
         printf("Misshapen barcode: Length\n");
     }
-    printf("%s\n", detector->pattern_buffer);
+    
+    // Reset buffers
     memset(detector->pattern_buffer, 0, sizeof(detector->pattern_buffer));
     detector->pattern_index = 0;
 }
 
 void decodeBarcode(BarcodeDetector *detector) {
+    // Initialise pattern help variables and strings
     int group_size = 9;
-    //char test[] = "tStsTsTstStSTsTststStStsTsTst";
-    char ast[] = "tStsTsTst", astb[] = "tsTsTstSt", zb[] = "tstsTsTSt", ab[] = "TstStstsT", fb[] = "tstSTsTst", z[] = "tSTsTstst", a[] = "TststStsT", f[] = "tsTsTStst";
+    char ast[] = "tStsTsTst";
     char new_pattern_buffer[3];
     char display_char[1];
     int new_pattern_length = 0;
+    char patterns[26][10] = {
+        "TststStsT", "tsTstStsT", "TsTstStst", "tstsTStsT", "TstsTStst", "tsTsTStst", "tststSTsT", "TststSTst", "tsTstSTst", "tstsTSTst", "TstststST", "tsTststST", "TsTststSt", "tstsTstST", "TstsTstSt", "tsTsTstSt", "tststsTST", "TststsTSt", "tsTstsTSt", "tstsTsTSt", "TStststsT", "tSTststsT", "TSTststst", "tStsTstsT", "TStsTstst", "tSTsTstst"
+    };
 
-    for (int i = 0; i < strlen(detector->pattern_buffer); i += group_size+1) {
+    // Increment and ignore space between characters
+    for (int i = 0; i < strlen(detector->pattern_buffer); i += group_size + 1) {
 
-        char current_group[10]; // 9 characters + null terminator
+        // Copy current set of 9 characters from pattern_buffer to current_group
+        char current_group[10];
         strncpy(current_group, detector->pattern_buffer + i, group_size);
-        current_group[group_size] = '\0'; // Null-terminate the substring
+        current_group[group_size] = '\0'; 
 
-        // Check if the current group matches patterns
-        if (strcmp(current_group, ast) == 0 || strcmp(current_group, astb) == 0) {
+        // Check for asterisk
+        if(strcmp(current_group, ast) == 0) {
             new_pattern_buffer[new_pattern_length] = '*';
             new_pattern_length++;
         }
-        else if (strcmp(current_group, z) == 0 || strcmp(current_group, zb) == 0) {
-            new_pattern_buffer[new_pattern_length] = 'Z';
-            new_pattern_length++;
+        else {
+            // Check for which letter is found, from A to Z
+            for (char letter = 'A'; letter <= 'Z'; ++letter) {
+                if (strcmp(current_group, patterns[letter - 'A']) == 0) {
+                    new_pattern_buffer[new_pattern_length] = letter;
+                    new_pattern_length++;
+                    break;
+                }
+            }
         }
-        else if (strcmp(current_group, a) == 0 || strcmp(current_group, ab) == 0) {
-            new_pattern_buffer[new_pattern_length] = 'A';
-            new_pattern_length++;
-        }
-        else if (strcmp(current_group, f) == 0 || strcmp(current_group, fb) == 0) {
-            new_pattern_buffer[new_pattern_length] = 'F';
-            new_pattern_length++;
-        }
+
         memset(current_group, 0, sizeof(current_group));
     }
+
+    // Check if barcode matches code 39 patterns
     if (new_pattern_buffer[0] == '*' && new_pattern_buffer[2] == '*') {
+
+        // Check if there is a pattern
         if (new_pattern_length>0) {
-        strncpy(display_char, new_pattern_buffer + 1, 1);
-        display_char[1] = '\0';
-        printf("Barcode detected and decoded into: %s\n", display_char);
+
+            // Display single character output
+            strncpy(display_char, new_pattern_buffer + 1, 1);
+            display_char[1] = '\0';
+            printf("Barcode detected and decoded into: %s\n", display_char);
         }
+    } else {
+        printf("Misshapen barcode");
     }
-    else {
-        printf("Misshapen barcode: Pattern\n");
-    }
+
+    // Reset buffers
+    memset(new_pattern_buffer, 0, sizeof(new_pattern_buffer));
+    memset(display_char, 0, sizeof(display_char));
 
     
     
 }
 
+// End low barcode sequence
 void finishLowBarcode(BarcodeDetector *detector) {
+
     // If end sequence detected, end scan
     if (detector->low_duration > 10 && detector->pattern_index > 4) {
         endBarcode(detector);
@@ -100,11 +118,14 @@ void finishLowBarcode(BarcodeDetector *detector) {
         detector->pattern_buffer[detector->pattern_index] = 's';
         detector->pattern_index++;
     }
-    detector->high_duration++; // Increment the 'high' duration
-    detector->low_duration = 0; // Reset the 'low' duration
+
+    // Increment and reset durations
+    detector->high_duration++; 
+    detector->low_duration = 0; 
 
 }
 
+// End high barcode sequence
 void finishHighBarcode(BarcodeDetector *detector) {
 
     // If the barcode is high for long enough, it's a big line
@@ -117,8 +138,10 @@ void finishHighBarcode(BarcodeDetector *detector) {
         detector->pattern_buffer[detector->pattern_index] = 't';
         detector->pattern_index++;
     }
-    detector->low_duration++; // Increment the 'low' duration
-    detector->high_duration = 0; // Reset the 'high' duration
+
+    // Increment and reset durations
+    detector->low_duration++; 
+    detector->high_duration = 0; 
 }
 
 // Increment high pulse counter
@@ -135,11 +158,14 @@ void addToLowBarcode(BarcodeDetector *detector) {
 // Manage high state
 void isHighState(BarcodeDetector *detector) {
     uint16_t sensor_data = adc_read();
-    printf("%d\n", sensor_data);
+    // Check for started barcode and if there is a line
     if (detector->barcode_started == 0 && sensor_data>=detector->line_threshold) {
         startBarcode(detector);
     }
-    else if (sensor_data>=detector->line_threshold){
+    // Check for lines
+    else if (sensor_data>=detector->line_threshold) {
+
+        // If there was a space prior to this state
         if (detector->low_duration > 0) {
             finishLowBarcode(detector);
         }
@@ -152,21 +178,28 @@ void isHighState(BarcodeDetector *detector) {
 // Manage low state
 void isLowState(BarcodeDetector *detector) {
     uint16_t sensor_data = adc_read();
-    printf("%d\n", sensor_data);
+
+    // Check if data is below the line threshold 
     if(sensor_data < detector->line_threshold) {
+
+        // Check if barcode has started scanning
         if (detector->barcode_started == 1) {
-        if (detector->high_duration > 0) {
-            finishHighBarcode(detector);
-        }
-        else {
-            if (detector->low_duration > 10) {
-                endBarcode(detector);
+
+            // Check if there had been a line prior to this state
+            if (detector->high_duration > 0) {
+                finishHighBarcode(detector);
             }
             else {
-                addToLowBarcode(detector);
+
+                // End the barcode if sequence detected
+                if (detector->low_duration > 10) {
+                    endBarcode(detector);
+                }
+                else {
+                    addToLowBarcode(detector);
+                }
             }
         }
-    }
     }
     
 }
@@ -180,6 +213,8 @@ void IR_sensor_handler(uint gpio, uint32_t events) {
         isHigh = false;
     }
 }
+
+
 
 
 
