@@ -3,9 +3,6 @@
 #include "pico/stdlib.h"
 #include "ultrasonic.h"
 
-#define TRIGGER_PIN 19
-#define ECHO_PIN 18
-
 int main() {
     stdio_init_all();
 
