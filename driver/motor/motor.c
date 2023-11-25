@@ -1,19 +1,3 @@
-#define LEFT_WHEEL_PWM_PIN 0
-#define RIGHT_WHEEL_PWM_PIN 1
-#define LEFT_WHEEL_PWM_1 2
-#define LEFT_WHEEL_PWM_2 3
-#define RIGHT_WHEEL_PWM_1 4
-#define RIGHT_WHEEL_PWM_2 5
-
-#define LEFT_IR_PIN 17
-#define RIGHT_IR_PIN 16
-
-#define STOP 0
-#define FORWARD 1
-#define LEFT 2
-#define RIGHT 3
-#define REVERSE 4
-
 void moveWheel(uint pin, bool rotaryDirection){
     gpio_init(pin);
     gpio_set_dir(pin, rotaryDirection);
@@ -25,8 +9,19 @@ void resetWheel(){
     gpio_put(LEFT_WHEEL_PWM_2, 0);
     gpio_put(RIGHT_WHEEL_PWM_1, 0);
     gpio_put(RIGHT_WHEEL_PWM_2, 0);
-    gpio_set_irq_enabled_with_callback(LEFT_IR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, false, &gpio_callback);
-    gpio_set_irq_enabled_with_callback(RIGHT_IR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, false, &gpio_callback);
+    gpio_set_irq_enabled_with_callback(LEFT_IR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, false, &wheel_encoder_callback);
+    gpio_set_irq_enabled_with_callback(RIGHT_IR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, false, &wheel_encoder_callback);
+}
+
+void wheel_irq_switch(int wheel_irq){
+    if(wheel_irq == LEFT){
+        gpio_set_irq_enabled_with_callback(LEFT_IR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, false, &wheel_encoder_callback);
+        gpio_set_irq_enabled_with_callback(RIGHT_IR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &wheel_encoder_callback);
+    }
+    else if (wheel_irq == RIGHT){
+        gpio_set_irq_enabled_with_callback(LEFT_IR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &wheel_encoder_callback);
+        gpio_set_irq_enabled_with_callback(RIGHT_IR_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, false, &wheel_encoder_callback);
+    }
 }
 
 void wheelSpeed(uint pin, uint channel, uint speed){
