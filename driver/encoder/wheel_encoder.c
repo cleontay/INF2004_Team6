@@ -1,7 +1,11 @@
+static char event_str[128];
+bool riseFlag = false;
+int rotaryDetectionCount = 0;
+int totalDistanceTravaled = 0;
 
 void gpio_event_string(char *buf, uint32_t events);
 
-void gpio_callback(uint gpio, uint32_t events) {
+void wheel_encoder_callback(uint gpio, uint32_t events) {
     // Put the GPIO event(s) that just happened into event_str
     // so we can print it
     gpio_event_string(event_str, events);
@@ -26,3 +30,24 @@ static const char *gpio_irq_str[] = {
         "EDGE_FALL",  // 0x4
         "EDGE_RISE"   // 0x8
 };
+
+void gpio_event_string(char *buf, uint32_t events) {
+    for (uint i = 0; i < 4; i++) {
+        uint mask = (1 << i);
+        if (events & mask) {
+            // Copy this event string into the user string
+            const char *event_str = gpio_irq_str[i];
+            while (*event_str != '\0') {
+                *buf++ = *event_str++;
+            }
+            events &= ~mask;
+
+            // If more events add ", "
+            if (events) {
+                *buf++ = ',';
+                *buf++ = ' ';
+            }
+        }
+    }
+    *buf++ = '\0';
+}
