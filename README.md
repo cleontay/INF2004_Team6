@@ -11,6 +11,7 @@ Drivers include:
 4. **Motor**
 5. **Ultrasonic**
 6. **WiFi**
+
 The codes in the driver folder are written in driver format to facilitate better integration.
 
 The **integrated_car** folder is the integration of all our components using FreeRTOS.
