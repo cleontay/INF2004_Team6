@@ -157,7 +157,7 @@ void motor_task(__unused void *params){
 
         while(true){
             vTaskDelay(100);
-            
+            // Reverse if object
             if(object_detected){
                 motor_mode = REVERSE;
                 resetWheel();
@@ -166,7 +166,7 @@ void motor_task(__unused void *params){
                 motor_mode = FORWARD;
                 resetWheel();
             }
-
+            // Check notch if more than count or 0
             if(notch > notch_count || notch == 0){
                 // printf("Notch: %i\n", notch_count);
                 //original
@@ -213,85 +213,8 @@ void motor_task(__unused void *params){
                     default:
                         break;
                 }
-
-                // switch(motor_mode){
-                //     case STOP:
-                //         //STOP
-                //         resetWheel();
-                //         break;
-                //     case FORWARD:
-                //         //FORWARD
-                //         moveWheel(LEFT_WHEEL_PWM_2, GPIO_OUT);
-                //         moveWheel(RIGHT_WHEEL_PWM_2, GPIO_OUT);
-                //         if(wheel_irq != LEFT){
-                //             wheel_irq_switch(LEFT);
-                //         }
-                //         break;
-                //     case LEFT:
-                //         //LEFT
-                //         moveWheel(RIGHT_WHEEL_PWM_2, GPIO_OUT);
-                //         moveWheel(LEFT_WHEEL_PWM_2, GPIO_IN);
-                //         notch =1;
-                //         if(wheel_irq != RIGHT){
-                //             wheel_irq_switch(RIGHT);
-                //         }
-                //         break;
-                //     case RIGHT:
-                //         //RIGHT
-                //         moveWheel(LEFT_WHEEL_PWM_2, GPIO_OUT);
-                //         moveWheel(RIGHT_WHEEL_PWM_2, GPIO_IN);
-                //         notch = 1;
-                //         if(wheel_irq != LEFT){
-                //             wheel_irq_switch(LEFT);
-                //         }
-                //         break;
-                //     case TURNLEFT:
-                //         //REVERSE
-                //         resetWheel();
-                //         moveWheel(LEFT_WHEEL_PWM_1, GPIO_OUT);
-                //         moveWheel(RIGHT_WHEEL_PWM_1, GPIO_OUT);
-                //         vTaskDelay(150);
-                //         resetWheel();
-                //         moveWheel(LEFT_WHEEL_PWM_1, GPIO_OUT);
-                //         moveWheel(RIGHT_WHEEL_PWM_2, GPIO_OUT);
-                //         vTaskDelay(350); 
-                //         resetWheel();        
-                //         moveWheel(LEFT_WHEEL_PWM_2, GPIO_OUT);
-                //         moveWheel(RIGHT_WHEEL_PWM_2, GPIO_OUT);
-                //         vTaskDelay(50);  
-                //         if(!done){
-                //             vTaskDelay(150);
-                //             motor_mode=TURNRIGHT;
-                //             done = true;
-                //         }
-                //         else{
-                //             resetWheel();        
-                //             moveWheel(LEFT_WHEEL_PWM_2, GPIO_OUT);
-                //             moveWheel(RIGHT_WHEEL_PWM_2, GPIO_OUT);
-                //             vTaskDelay(50); 
-                //         }
-                //         break;
-                //     case TURNRIGHT:
-                //         //REVERSE
-                //         resetWheel();
-                //         moveWheel(LEFT_WHEEL_PWM_1, GPIO_OUT);
-                //         moveWheel(RIGHT_WHEEL_PWM_1, GPIO_OUT);
-                //         vTaskDelay(150);
-                //         resetWheel();
-                //         moveWheel(LEFT_WHEEL_PWM_2, GPIO_OUT);
-                //         moveWheel(RIGHT_WHEEL_PWM_1, GPIO_OUT);
-                //         vTaskDelay(350);  
-                //         resetWheel();
-                //         moveWheel(LEFT_WHEEL_PWM_2, GPIO_OUT);
-                //         moveWheel(RIGHT_WHEEL_PWM_2, GPIO_OUT);
-                //         vTaskDelay(50);
-                //         vTaskDelay(150);
-                //         motor_mode=TURNLEFT;
-                //         break;
-                //     default:
-                //         break;
-                // }
             }
+            // Reset notch
             else{
                 notch = 0;
                 notch_count = 0;
@@ -368,65 +291,9 @@ void irline_task(__unused void *params){
                     break;
             }
 
-            // for turn
-
-
-            // if(!noread){
-                // switch (irMotorState) {
-                // case NO_LINE:
-                //     motor_mode = FORWARD;
-                //     printf("FORWARD\n");
-                //     break;
-                // case LEFT_LINE:
-                //     motor_mode = TURNLEFT;
-                //     printf("REVERSE\n");
-                //     break;
-                // case RIGHT_LINE:
-                //     motor_mode = TURNLEFT;
-                //     printf("REVERSE\n");
-                //     break;
-                // case BOTH_LINES:
-                //     motor_mode = TURNLEFT;
-                //     printf("REVERSE\n");
-                //     break;
-                // default:
-                //     break;
-                // }
-
-            //     noread = true
-            // }
         }
     }
 }
-
-// void mapping_task(__unused void *params){
-
-//     int start_row = 0;
-//     int start_col = 5;
-
-//     test_route(LEFT);
-//     if(motor_mode == RIGHT){
-//         start_col -= 1;
-//         map[start_col][start_row] = 1;
-//         motor_mode = STOP;
-//     }
-//     else{
-//         test_route(FORWARD);
-//         if(motor_mode == FORWARD){
-//             start_row += 1;
-//             map[start_col][start_row + 1] = 1;
-//             motor_mode = STOP;
-//         }
-//         else{
-//             test_route(RIGHT);
-//             if(motor_mode == LEFT){
-//                 start_col += 1;
-//                 map[start_col+1][start_row] = 1;
-//                 motor_mode = STOP;
-//             }
-//         }
-//     }
-// }
 
 
 void vLaunch(void)
@@ -441,15 +308,6 @@ void vLaunch(void)
                 NULL,
                 tskIDLE_PRIORITY + 1UL,
                 &web_task_handler);
-
-    // Mapping task init
-    // TaskHandle_t map_task_handler;
-    // xTaskCreate(mapping_task,
-    //             "mapThread",
-    //             configMINIMAL_STACK_SIZE,
-    //             NULL,
-    //             tskIDLE_PRIORITY,
-    //             &map_task_handler);
 
     // Magnometer task init
     TaskHandle_t mag_task_handler;
