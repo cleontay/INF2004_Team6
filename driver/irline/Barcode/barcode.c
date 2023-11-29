@@ -26,7 +26,7 @@ void endBarcode(BarcodeDetector *detector) {
     detector->pattern_buffer[detector->pattern_index] = '\0';
     detector->barcode_started = 0;
     detector->low_duration = 0;
-
+    printf("%s\n", detector->pattern_buffer);
     // Check for incomplete barcode
     if(strlen(detector->pattern_buffer) == 29) {
         decodeBarcode(detector);
