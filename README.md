@@ -3,7 +3,7 @@
 ## Note
 
 The driver folder is for us to test our individual components with our Raspberry Pi Pico.
-Drivers includes:
+Drivers include:
 
 1. **Wheel Encoder**
 2. **IR Line sensor for Barcode and reading line**
@@ -11,8 +11,9 @@ Drivers includes:
 4. **Motor**
 5. **Ultrasonic**
 6. **WiFi**
+The codes in the driver folder are written in driver format to facilitate better integration.
 
-The integrated_car folder is the integration of all our components using FreeRTOS.
+The **integrated_car** folder is the integration of all our components using FreeRTOS.
 
 ## Robot Car Setup and Execution Guide
 
