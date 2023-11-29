@@ -53,7 +53,7 @@ Before you begin, ensure you have the following:
 
 1. **Connect the Raspberry Pi Pico:**
 
-    - Connect the Pico to your computer using a micro-USB cable.
+    - Connect the Pico to your computer using a micro-USB cable after holding the button.
 
 2. **Run the code:**
 
@@ -64,4 +64,10 @@ Before you begin, ensure you have the following:
 
 ![Car Configuration](https://github.com/cleontay/INF2004_Team6/blob/main/integrated_car/car_configuration/car_configuration.jpg)
 
+## Running individual drivers
+
+   - Download the code and extract specified folder.
+   - Wire the individual component (E.g. IR Sensor) to the raspberry pi pico as per the above wiring configuration.
+   - Plug in the raspberry pi pico (After holding the button) and run the code.
+   - View output in visual studio code serial monitor.
 
