@@ -81,6 +81,3 @@ int totalDistanceTravaled = 0;
 
 //Barcode Sensor
 #define IR_SENSOR_PIN 28
-
-//Mapping
-// int map[12][12]
