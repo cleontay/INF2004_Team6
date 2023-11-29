@@ -81,6 +81,7 @@ int notch = 0;
 
 void web_task(__unused void *params)
 {
+    // Initialise ip variables
     ip_addr_t ip;
     ip_addr_t netmask;
     ip_addr_t gateway;
@@ -89,6 +90,7 @@ void web_task(__unused void *params)
     ip4addr_aton(NETMASK, &netmask);
     cyw43_arch_init();
 
+    // Set hostname and network
     cyw43_arch_enable_sta_mode();
     cyw43_arch_lwip_begin();
     struct netif *n = &cyw43_state.netif[CYW43_ITF_STA];
@@ -129,6 +131,8 @@ void web_task(__unused void *params)
 
 void mag_task(__unused void *params){
     printf("Magnometer Task Starting\n");
+
+    // Keep reading magnometer
     while (true){        
         lsm303dlh_read_mag(&mag);
         // printf("Direction: %f\n", get_angle(mag.x, mag.y));
@@ -300,7 +304,7 @@ void motor_task(__unused void *params){
 void ultrasonic_task(__unused void *params){
 
     ultrasonic_init();
-
+    // Keep checking ultrasonic
     while (1) {
         vTaskDelay(100);
         trigger_pulse();
@@ -318,7 +322,7 @@ void barcode_task(__unused void *params){
     gpio_set_irq_enabled_with_callback(IR_SENSOR_PIN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &irq_callback);
 
     while(1) {
-        // Manage states
+        // Manage pin states and consistently update barcode scanner
         if (isHigh == true) {
             isHighState(&barcodeDetector);
         }
@@ -342,7 +346,7 @@ void irline_task(__unused void *params){
 
             irMotorState = determine_motor_state();
 
-            // for all
+            // for all motor states. Modify when lines found.
             switch (irMotorState) {
                 case NO_LINE:
                     motor_mode = FORWARD;
@@ -427,16 +431,16 @@ void irline_task(__unused void *params){
 
 void vLaunch(void)
 {
-    // Initialise and create tasks for each driver
+    // Initialise and create tasks for each driver for FreeRTOS
 
     // Web server task init
-    // TaskHandle_t web_task_handler;
-    // xTaskCreate(web_task,
-    //             "webserverThread",
-    //             configMINIMAL_STACK_SIZE,
-    //             NULL,
-    //             tskIDLE_PRIORITY + 1UL,
-    //             &web_task_handler);
+    TaskHandle_t web_task_handler;
+    xTaskCreate(web_task,
+                "webserverThread",
+                configMINIMAL_STACK_SIZE,
+                NULL,
+                tskIDLE_PRIORITY + 1UL,
+                &web_task_handler);
 
     // Mapping task init
     // TaskHandle_t map_task_handler;
@@ -448,13 +452,13 @@ void vLaunch(void)
     //             &map_task_handler);
 
     // Magnometer task init
-    // TaskHandle_t mag_task_handler;
-    // xTaskCreate(mag_task,
-    //         "MagThread",
-    //         configMINIMAL_STACK_SIZE,
-    //         NULL,
-    //         tskIDLE_PRIORITY,
-    //         &mag_task_handler);
+    TaskHandle_t mag_task_handler;
+    xTaskCreate(mag_task,
+            "MagThread",
+            configMINIMAL_STACK_SIZE,
+            NULL,
+            tskIDLE_PRIORITY,
+            &mag_task_handler);
 
     // Motor task init
     TaskHandle_t motor_task_handler;
