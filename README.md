@@ -60,6 +60,6 @@ Before you begin, ensure you have the following:
 
 ## Robot Car Component linking and configuration
 
-![Car Configuration](car_configuration.jpg)
+![Car Configuration](https://github.com/cleontay/INF2004_Team6/blob/main/integrated_car/car_configuration/car_configuration.jpg)
 
 
